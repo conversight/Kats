@@ -344,6 +344,7 @@ class Connection(heavydb.Connection):
     def select_ipc(
         self,
         operation,
+        isArrow=False,
         parameters=None,
         first_n=-1,
         release_memory=True,
@@ -355,6 +356,8 @@ class Connection(heavydb.Connection):
         ----------
         operation: str
             A SQL select statement
+        isArrow: bool
+            Flag to return arrow format
         parameters: dict, optional
             Parameters to insert for a parametrized query
         first_n: int, optional
@@ -389,6 +392,8 @@ class Connection(heavydb.Connection):
         if transport_method == TArrowTransport.WIRE:
             reader = pa.ipc.open_stream(tdf.df_buffer)
             tbl = reader.read_all()
+            if isArrow:
+                return tbl
             df = tbl.to_pandas()
             return df
 
@@ -396,6 +401,8 @@ class Connection(heavydb.Connection):
             df_buf = load_buffer(tdf.df_handle, tdf.df_size)
             reader = pa.ipc.open_stream(df_buf[0])
             tbl = reader.read_all()
+            if isArrow:
+                return tbl
             df = tbl.to_pandas()
 
             # this is needed to modify the df object for deallocate_df to work
